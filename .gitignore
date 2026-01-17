@@ -1,0 +1,5 @@
+__pycache__
+.\static\capturedImage*.jpg
+.\static\capturedImage*.png
+.\static\detectedImage*.jpg
+.\static\detectedImage*.png

@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>POC</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Orbitron:wght@500;700&display=swap"
+    rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --panel-bg: #1e293b;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --accent-color: #3b82f6;
+      --accent-hover: #2563eb;
+      --danger-color: #ef4444;
+      --success-color: #22c55e;
+      --border-color: #334155;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1),
+        0 2px 4px -2px rgb(0 0 0 / 0.1);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1),
+        0 4px 6px -4px rgb(0 0 0 / 0.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Inter", sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-primary);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Mobile Restriction Overlay */
+    #mobile-restriction {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--bg-color);
+      z-index: 9999;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 2rem;
+    }
+
+    #mobile-restriction h2 {
+      font-family: "Orbitron", sans-serif;
+      color: var(--accent-color);
+      margin-bottom: 1rem;
+      font-size: 2rem;
+    }
+
+    #mobile-restriction p {
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+      max-width: 500px;
+    }
+
+    /* Main App Container */
+    #app-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      width: 100%;
+    }
+
+    /* Header */
+    header {
+      background-color: var(--panel-bg);
+      border-bottom: 1px solid var(--border-color);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow-sm);
+      height: 70px;
+    }
+
+    .logo {
+      font-family: "Orbitron", sans-serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--accent-color);
+      letter-spacing: 1px;
+    }
+
+    .theme-toggle {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .theme-toggle:hover {
+      background: var(--border-color);
+      color: var(--text-primary);
+    }
+
+    /* Main Content Layout */
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 3fr 1fr;
+      gap: 1.5rem;
+      padding: 1.5rem;
+      height: calc(100vh - 70px);
+      overflow: hidden;
+    }
+
+    /* Panels */
+    .panel {
+      background-color: var(--panel-bg);
+      border-radius: 1rem;
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-md);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      font-size: 0.85rem;
+      letter-spacing: 0.05em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Left Panel: Video & Controls */
+    .left-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      overflow: visible;
+    }
+
+    .video-container {
+      flex: 1;
+      max-height: 80%;
+      background-color: #000;
+      border-radius: 1rem;
+      border: 1px solid var(--border-color);
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .video-container img {
+      max-width: 100%;
+      max-height: 60vh;
+      object-fit: contain;
+    }
+
+    .controls-container {
+      background-color: var(--panel-bg);
+      border-radius: 1rem;
+      border: 1px solid var(--border-color);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      box-shadow: var(--shadow-md);
+    }
+
+    .control-group {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 0.5rem;
+      flex: 1;
+    }
+
+    input[type="text"] {
+      background-color: var(--bg-color);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 0.6rem 1rem;
+      border-radius: 0.5rem;
+      width: 100%;
+      font-size: 0.9rem;
+      transition: border-color 0.2s;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: var(--accent-color);
+    }
+
+    button {
+      background-color: var(--accent-color);
+      color: white;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 0.5rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.9rem;
+      white-space: nowrap;
+    }
+
+    button:hover {
+      background-color: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .detection-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .det-btn {
+      background-color: var(--bg-color);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+    }
+
+    .det-btn:hover {
+      background-color: var(--border-color);
+      color: var(--text-primary);
+    }
+
+    .det-btn.selected {
+      background-color: var(--accent-color);
+      color: white;
+      border-color: var(--accent-color);
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+    }
+
+    .capture-btn {
+      background-color: var(--success-color);
+      width: 100%;
+      margin-top: 0.5rem;
+      font-weight: 600;
+      padding: 0.8rem;
+    }
+
+    .capture-btn:hover {
+      background-color: #16a34a;
+    }
+
+    /* Right Panel: Results */
+    .right-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      padding: 1rem;
+      overflow-y: auto;
+    }
+
+    .result-card {
+      background-color: var(--bg-color);
+      border-radius: 0.75rem;
+      border: 1px solid var(--border-color);
+      padding: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .result-card label {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .result-image {
+      width: 100%;
+      aspect-ratio: 4/3;
+      background-color: #000;
+      border-radius: 0.5rem;
+      object-fit: contain;
+      border: 1px solid var(--border-color);
+    }
+
+    .status-box {
+      margin-top: auto;
+    }
+
+    .status-input {
+      background-color: rgba(239, 68, 68, 0.1) !important;
+      border-color: rgba(239, 68, 68, 0.2) !important;
+      color: var(--danger-color) !important;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-secondary);
+    }
+
+    /* Modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 10000;
+      padding-top: 50px;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.95);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      margin: auto;
+      display: block;
+      max-width: 90%;
+      max-height: 90vh;
+      object-fit: contain;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      animation-name: zoom;
+      animation-duration: 0.3s;
+    }
+
+    .close {
+      position: absolute;
+      top: 20px;
+      right: 35px;
+      color: #f1f1f1;
+      font-size: 40px;
+      font-weight: bold;
+      transition: 0.3s;
+      cursor: pointer;
+      z-index: 10001;
+    }
+
+    .close:hover,
+    .close:focus {
+      color: #bbb;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    @keyframes zoom {
+      from {
+        transform: scale(0.1)
+      }
+
+      to {
+        transform: scale(1)
+      }
+    }
+
+    /* Responsive Logic */
+    @media (max-width: 1024px) {
+      #app-container {
+        display: none !important;
+      }
+
+      #mobile-restriction {
+        display: flex !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Mobile Restriction -->
+  <div id="mobile-restriction">
+    <h2>Desktop Only</h2>
+    <p>This application is optimized for desktop and laptop screens.</p>
+  </div>
+
+  <!-- Main App -->
+  <div id="app-container">
+    <header>
+      <div class="logo">Proof of Concept Review</div>
+      <!-- <button id="theme-toggle" class="theme-toggle">
+          <span>🌙</span> Dark Mode
+        </button> -->
+    </header>
+
+    <main>
+      <!-- Left Column -->
+      <div class="left-panel">
+        <div class="video-container">
+          <img src="{{ url_for('video_feed') }}" id="live-stream" alt="Live Feed" />
+        </div>
+
+        <div class="controls-container">
+          <div class="control-group">
+            <div class="input-group">
+              <input id="exposure-value" placeholder="Exposure Value" type="text" />
+              <button id="set-exposure">Set Exposure</button>
+            </div>
+            <div class="input-group">
+              <input class="gain" placeholder="Gain Value" type="text" />
+              <button class="set-gain">Set Gain</button>
+            </div>
+          </div>
+
+          <div class="detection-grid">
+            <button class="det-btn" data-id="1">Det-1</button>
+            <button class="det-btn" data-id="2">Det-2</button>
+            <button class="det-btn" data-id="3">Det-3</button>
+            <button class="det-btn" data-id="4">Det-4</button>
+            <button class="det-btn" data-id="5">Det-5</button>
+            <button class="det-btn" data-id="6">Det-6</button>
+            <button class="det-btn" data-id="7">Det-7</button>
+            <button class="det-btn" data-id="8">Det-8</button>
+            <button class="det-btn" data-id="9">Det-9</button>
+            <button class="det-btn" data-id="10">Det-10</button>
+          </div>
+
+          <button id="capture" class="capture-btn" onclick="captureImage()">
+            CAPTURE IMAGE
+          </button>
+        </div>
+      </div>
+
+      <!-- Right Column -->
+      <div class="panel right-panel">
+        <!-- <div class="panel-header">Results</div> -->
+
+        <div class="result-card">
+          <label>CAPTURED IMAGE</label>
+          <img id="captured-img" class="result-image captured-img" src="" alt="Captured" style="cursor: pointer;" />
+        </div>
+
+        <div class="result-card">
+          <label>DETECTED IMAGE</label>
+          <img id="detected-img" class="result-image detected-img" src="" alt="Detected" style="cursor: pointer;" />
+        </div>
+
+        <div class="status-box">
+          <input type="text" id="error" class="status-input" readonly placeholder="Status / Errors" />
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Image Modal -->
+  <div id="image-modal" class="modal">
+    <span class="close">&times;</span>
+    <img class="modal-content" id="modal-img">
+  </div>
+
+  <script>
+    let selectedButton = null;
+
+    window.addEventListener("DOMContentLoaded", () => {
+      // Modal Logic
+      const modal = document.getElementById("image-modal");
+      const modalImg = document.getElementById("modal-img");
+      const closeBtn = document.getElementsByClassName("close")[0];
+
+      function openModal(src) {
+        // Only open if src is valid and not empty
+        if (src && src !== "" && !src.endsWith("/")) {
+          modal.style.display = "flex";
+          modalImg.src = src;
+        }
+      }
+
+      document.querySelectorAll('.captured-img, .detected-img').forEach(img => {
+        img.addEventListener('click', function () {
+          openModal(this.src);
+        });
+      });
+
+      closeBtn.onclick = function () {
+        modal.style.display = "none";
+      }
+
+      modal.onclick = function (e) {
+        if (e.target === modal) {
+          modal.style.display = "none";
+        }
+      }
+
+      // Wire up Det-buttons
+      document.querySelectorAll(".det-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          if (selectedButton) {
+            selectedButton.classList.remove("selected");
+          }
+          btn.classList.add("selected");
+          selectedButton = btn;
+        });
+      });
+
+      // Theme Toggle
+      //const toggleBtn = document.getElementById("theme-toggle");
+
+      // Fetch Current Settings
+      fetch("/get_settings")
+        .then((res) => res.json())
+        .then((data) => {
+          console.log("Current settings:", data);
+          if (data.exposure !== "Error") {
+            document.getElementById("exposure-value").value = data.exposure;
+          }
+          if (data.gain !== "Error") {
+            document.querySelector(".gain").value = data.gain;
+          }
+        })
+        .catch((err) => console.error("Error fetching settings:", err));
+
+      // Exposure Button
+      const setExposureBtn = document.getElementById("set-exposure");
+      if (setExposureBtn) {
+        setExposureBtn.addEventListener("click", () => {
+          const val = document.getElementById("exposure-value").value;
+          fetch("/set_exposure", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ exposure: val }),
+          })
+            .then((res) => res.json())
+            .then((data) => {
+              console.log("Exposure set:", data);
+            })
+            .catch((err) => console.error(err));
+        });
+      }
+
+      // Gain Button
+      const setGainBtn = document.querySelector(".set-gain");
+      if (setGainBtn) {
+        setGainBtn.addEventListener("click", () => {
+          const val = document.querySelector(".gain").value;
+          fetch("/set_gain", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ gain: val }),
+          })
+            .then((res) => res.json())
+            .then((data) => {
+              console.log("Gain set:", data);
+            })
+            .catch((err) => console.error(err));
+        });
+      }
+    });
+
+    function captureImage() {
+      if (!selectedButton) {
+        const errField = document.getElementById("error");
+        errField.value = "Please select a detection button first!";
+        // Flash error
+        setTimeout(() => {
+          errField.value = "";
+        }, 3000);
+        return;
+      }
+
+      const buttonIndex = selectedButton.getAttribute("data-id");
+
+      fetch("/capture", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ button: parseInt(buttonIndex) }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          const errField = document.getElementById("error");
+          if (data.error) {
+            errField.value = data.error;
+            return;
+          }
+          // bust the cache
+          const t = Date.now();
+          document.getElementById("captured-img").src =
+            data.captured_image + "?t=" + t;
+          document.getElementById("detected-img").src =
+            data.detected_image + "?t=" + t;
+          errField.value = JSON.stringify(data.message) || "Capture Success";
+          errField.style.color = "var(--success-color)";
+          errField.style.borderColor = "var(--success-color)";
+          errField.style.backgroundColor = "rgba(34, 197, 94, 0.1)";
+          console.log(`${errField.value}`);
+        })
+        .catch((err) => {
+          document.getElementById("error").value = "Capture failed";
+          console.error(err);
+        });
+    }
+  </script>
+</body>
+
+</html>
