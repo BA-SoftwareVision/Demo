@@ -1,19 +1,23 @@
 # baumer_camera.py
 import neoapi
 import cv2
+import os
+
 
 class BaumerCamera:
-    def __init__(self, serial_number='700009456923'):
+    def __init__(self):
         self.camera = None
-        self.serial_number = serial_number
+        self.IP_Address = os.getenv("CAMERA_IP")
         self.connect()
 
     def connect(self):
         try:
             self.camera = neoapi.Cam()
-            self.camera.Connect(self.serial_number)
-            self.camera.f.ExposureTime.Set(10000)  # default exposure
-            print('Camera Connected!')
+            self.camera.Connect('')
+            self.camera.f.ExposureTime.Set(100000)  # default exposure
+            if self.camera.f.PixelFormat.GetEnumValueList().IsReadable("BGR8"):
+                self.camera.f.PixelFormat.SetString("BGR8")
+            print("Camera Connected!")
         except Exception as e:
             print(f"Error connecting to Baumer camera: {e}")
             self.camera = None
@@ -23,7 +27,7 @@ class BaumerCamera:
 
     def get_frame(self):
         if not self.is_connected():
-            print("Camera not connected.")
+            # print("Camera not connected.")
             return None
         try:
             img = self.camera.GetImage()
@@ -49,3 +53,28 @@ class BaumerCamera:
             except Exception as e:
                 print(f"Failed to set exposure: {e}")
         return False
+
+    def get_gain(self):
+        if self.is_connected():
+            try:
+                return self.camera.f.Gain.Get()
+            except Exception as e:
+                print(f"Failed to get gain: {e}")
+        return None
+
+    def set_gain(self, gain_value):
+        if self.is_connected():
+            try:
+                self.camera.f.Gain.Set(gain_value)
+                return True
+            except Exception as e:
+                print(f"Failed to set exposure: {e}")
+        return False
+
+    def close(self):
+        if self.is_connected():
+            try:
+                self.camera.Disconnect()
+                print("Camera disconnected")
+            except Exception as e:
+                print(f"Failed to disconnect camera: {e}")

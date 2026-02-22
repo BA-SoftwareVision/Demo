@@ -1,0 +1,21 @@
+Tag Image
+docker tag poc-camera-app:latest pratham4563/poc-camera-app:latest
+
+Push image
+docker push pratham4563/poc-camera-app:latest
+
+Create Docker Container (yaml setup)
+docker compose up -d
+
+Stop Container
+docker compose down
+
+
+Remove both Docker Images
+
+You must remove the tags first.
+Step 1 — Remove both tags:
+docker rmi poc-camera-app:latest
+Then:
+docker rmi pratham4563/poc-camera-app:latest
+After removing both tags, the image layer will disappear.

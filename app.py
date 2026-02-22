@@ -4,15 +4,18 @@ import cv2
 import threading
 from flask import Flask, request, jsonify, render_template, Response, send_file
 
-from cameraCode.ET import ETCamera
+from cameraCode.baumer_camera import BaumerCamera
+
 # from visionCodes.grayscale import convert_to_grayscale
 import signal
 import sys
 import threading
+import base64
 
 from visionCodes.final_black import analyze_black_spot_defect
 from visionCodes.final_scrach import analyze_scratch_defect
 from visionCodes.final_white import analyze_white_spot
+
 stop_event = threading.Event()
 
 app = Flask(__name__)
@@ -28,21 +31,21 @@ os.makedirs(captured_dir, exist_ok=True)
 os.makedirs(detected_dir, exist_ok=True)
 
 # ---- Camera Init ----
-et_cam = ETCamera()
+baumer_cam = BaumerCamera()
 
 
 def camera_grabber():
     global global_frame
     try:
-        et_cam.connect()   # This already starts grabbing internally
-        print("[ET] Camera connected and grabbing")
+        print("[Baumer] Camera connected and grabbing")
 
         while not stop_event.is_set():
-            frame = et_cam.get_frame()
+            frame = baumer_cam.get_frame()
+
             if frame is not None:
                 with frame_lock:
                     global_frame = frame.copy()
-            
+
             time.sleep(0.01)
 
     except Exception as e:
@@ -50,10 +53,7 @@ def camera_grabber():
 
     finally:
         print("Camera cleanup")
-
-        # ONLY call what actually exists
-        if hasattr(et_cam, "close"):
-            et_cam.close()
+        baumer_cam.close()
 
 
 def generate_frames():
@@ -91,18 +91,20 @@ def capture_image():
     if frame is None:
         return jsonify({"error": "No frame available"}), 500
 
-    cap_path = os.path.join(captured_dir, "captured.jpg")
-    cv2.imwrite(cap_path, frame)
+    # cap_path = os.path.join(captured_dir, "captured.jpg")
+    # cv2.imwrite(cap_path, frame)
+    _, buffer = cv2.imencode(".png", frame)
+    img_base64 = base64.b64encode(buffer).decode("utf-8")
 
     data = request.get_json() or {}
     button = int(data.get("button", 0))
 
     if button == 1:
-        out_img, msg = analyze_black_spot_defect(cap_path, detected_dir)
+        out_img, msg = analyze_black_spot_defect(frame, detected_dir)
     elif button == 2:
-        out_img, msg = analyze_scratch_defect(cap_path)
+        out_img, msg = analyze_scratch_defect(frame)
     elif button == 3:
-        out_img, msg = analyze_white_spot(cap_path)
+        out_img, msg = analyze_white_spot(frame)
     # elif button == 4:
     #     out_img, msg = analyze_cross_sectional_dimensions(cap_path)
     # elif button == 5:
@@ -114,12 +116,14 @@ def capture_image():
         out_img, msg = frame, "No processing selected"
 
     det_path = os.path.join(detected_dir, "detected.jpg")
-    cv2.imwrite(det_path, out_img)
+    _, buffer = cv2.imencode(".png", out_img)
+    img_base64 = base64.b64encode(buffer).decode("utf-8")
+    # cv2.imwrite(det_path, out_img)
 
     return jsonify(
         {
-            "captured_image": "/static/capturedImage/captured.jpg",
-            "detected_image": "/static/detectedImage/detected.jpg",
+            "captured_image": img_base64,
+            "detected_image": img_base64,
             "message": msg,
         }
     )
@@ -139,39 +143,64 @@ def get_detected_image():
 def set_exposure():
     data = request.get_json()
     exposure = float(data.get("exposure", 10000))
-    success = et_cam.set_exposure(exposure)
+    success = baumer_cam.set_exposure(exposure)
     return jsonify({"success": success, "exposure": exposure})
 
 
 @app.route("/set_gain", methods=["POST"])
 def set_gain():
     data = request.get_json()
-    gain = float(data.get("gain", 5.0))
-    success = et_cam.set_gain(gain)
+    gain = float(data.get("gain", 400))
+    success = baumer_cam.set_gain(gain)
     return jsonify({"success": success, "gain": gain})
 
 
 @app.route("/get_settings", methods=["GET"])
 def get_settings():
-    exposure = et_cam.get_exposure()
-    gain = et_cam.get_gain()
-    return jsonify({
-        "exposure": exposure if exposure is not None else "Error",
-        "gain": gain if gain is not None else "Error"
-    })
+    exposure = baumer_cam.get_exposure()
+    gain = baumer_cam.get_gain()
+    return jsonify(
+        {
+            "exposure": exposure if exposure is not None else "Error",
+            "gain": gain if gain is not None else "Error",
+        }
+    )
 
 
 def signal_handler(sig, frame):
-    print("Ctrl+C detected, shutting down...")
+    print("\nCtrl+C detected, shutting down...")
+
+    # Stop camera thread
     stop_event.set()
+
+    # Give thread time to exit
+    time.sleep(0.5)
+
+    # Close camera safely
+    try:
+        if baumer_cam is not None and baumer_cam.is_connected():
+            baumer_cam.close()
+            print("[Baumer] Camera closed successfully")
+    except Exception as e:
+        print("[Baumer] Error closing camera:", e)
+
+    # Exit program
     sys.exit(0)
-
-signal.signal(signal.SIGINT, signal_handler)
-
 
 
 if __name__ == "__main__":
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+
     cam_thread = threading.Thread(target=camera_grabber, daemon=True)
     cam_thread.start()
 
-    app.run(debug=False, use_reloader=False,port=8000)
+    try:
+        app.run(debug=False, use_reloader=False, port=8000)
+    finally:
+        print("Flask shutting down...")
+        stop_event.set()
+
+        if baumer_cam is not None and baumer_cam.is_connected():
+            baumer_cam.close()
+            print("[Baumer] Camera closed (Flask exit)")
