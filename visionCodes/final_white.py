@@ -142,15 +142,12 @@ def analyze_white_spot(image_path, detected_dir=None):
     """
 
     # -------------------- 1. LOAD IMAGE --------------------
-    img = cv2.imread(image_path)
+    img = image_path
     if img is None:
         raise FileNotFoundError(f"Could not read: {image_path}")
 
     vis_img = img.copy()
-    results = {
-        "white_spot_found": False,
-        "count": 0
-    }
+    results = {"white_spot_found": False, "count": 0}
 
     # -------------------- 2. HSV MASK --------------------
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
@@ -196,7 +193,7 @@ def analyze_white_spot(image_path, detected_dir=None):
                     cv2.FONT_HERSHEY_SIMPLEX,
                     0.6,
                     (0, 0, 255),
-                    2
+                    2,
                 )
                 idx += 1
 
@@ -208,15 +205,7 @@ def analyze_white_spot(image_path, detected_dir=None):
         status_text = "OK"
         color = (0, 255, 0)
 
-    cv2.putText(
-        vis_img,
-        status_text,
-        (30, 50),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        1.2,
-        color,
-        3
-    )
+    cv2.putText(vis_img, status_text, (30, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.2, color, 3)
 
     # -------------------- 6. SAVE OUTPUTS --------------------
     # if detected_dir:

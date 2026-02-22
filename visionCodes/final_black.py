@@ -117,9 +117,6 @@
 #     print("Saved output:", result_path)
 
 
-
-
-
 ##-- FINAL FUNCTION FOR INTEGRATION--
 # import cv2
 # import numpy as np
@@ -243,35 +240,6 @@
 #     print("Saved output:", result_path)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 import cv2
 import numpy as np
 import os
@@ -304,7 +272,7 @@ def analyze_black_spot_defect(image_path, detected_dir=None):
     """
 
     # 1. Read Image
-    img = cv2.imread(image_path)
+    img = image_path
     if img is None:
         raise FileNotFoundError(f"Could not read: {image_path}")
 
@@ -334,7 +302,7 @@ def analyze_black_spot_defect(image_path, detected_dir=None):
             if perimeter == 0:
                 continue
 
-            circularity = 4 * math.pi * area / (perimeter ** 2)
+            circularity = 4 * math.pi * area / (perimeter**2)
 
             # Circularity filter
             if MIN_CIRCULARITY <= circularity <= MAX_CIRCULARITY:
@@ -354,14 +322,11 @@ def analyze_black_spot_defect(image_path, detected_dir=None):
                     0.5,
                     (255, 0, 0),
                     1,
-                    cv2.LINE_AA
+                    cv2.LINE_AA,
                 )
 
     # 5. Results Dictionary (UI friendly)
-    results = {
-        "black_spot_found": black_spot_found,
-        "defect_count": defect_count
-    }
+    results = {"black_spot_found": black_spot_found, "defect_count": defect_count}
 
     # 6. UI Overlay
     if black_spot_found:
@@ -373,7 +338,7 @@ def analyze_black_spot_defect(image_path, detected_dir=None):
             2.0,
             (0, 0, 255),
             3,
-            cv2.LINE_AA
+            cv2.LINE_AA,
         )
     else:
         cv2.putText(
@@ -384,7 +349,7 @@ def analyze_black_spot_defect(image_path, detected_dir=None):
             2.0,
             (0, 255, 0),
             3,
-            cv2.LINE_AA
+            cv2.LINE_AA,
         )
 
     # 7. Save Logic
@@ -405,8 +370,7 @@ if __name__ == "__main__":
 
     try:
         processed_img, data = analyze_black_spot_defect(
-            image_path=test_image,
-            detected_dir=output_dir
+            image_path=test_image, detected_dir=output_dir
         )
 
         print("Results:", data)

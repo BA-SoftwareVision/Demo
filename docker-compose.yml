@@ -1,0 +1,14 @@
+version: "3.8"
+
+services:
+  poc-camera:
+    image: pratham4563/poc-camera-app:latest
+    container_name: poc-camera
+    network_mode: "host"
+    restart: always
+    environment:
+      - PYTHONUNBUFFERED=1
+      - CAMERA_IP=192.168.31.190
+    volumes:
+      - ./static/capturedImage:/app/static/capturedImage
+      - ./static/detectedImage:/app/static/detectedImage

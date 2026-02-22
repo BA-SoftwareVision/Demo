@@ -165,8 +165,6 @@
 #     detect_scratch_defect(input_img, output_path)
 
 
-
-
 import cv2
 import numpy as np
 import os
@@ -176,6 +174,7 @@ import math
 MIN_CONTOUR_AREA = 80
 MAX_CONTOUR_AREA = 500
 MAX_HULL_AREA = 850
+
 
 # -------------------- MAIN ANALYSIS FUNCTION --------------------
 def analyze_scratch_defect(image_path, detected_dir=None):
@@ -192,7 +191,7 @@ def analyze_scratch_defect(image_path, detected_dir=None):
     """
 
     # 1. Load Image
-    img = cv2.imread(image_path)
+    img = image_path
     if img is None:
         raise FileNotFoundError(f"Could not read image: {image_path}")
 
@@ -200,10 +199,7 @@ def analyze_scratch_defect(image_path, detected_dir=None):
     vis_img = img.copy()
 
     # Results container
-    results = {
-        "scratch_found": False,
-        "scratch_count": 0
-    }
+    results = {"scratch_found": False, "scratch_count": 0}
 
     # 2. Preprocessing
     gray = cv2.cvtColor(orig, cv2.COLOR_BGR2GRAY)
@@ -214,11 +210,7 @@ def analyze_scratch_defect(image_path, detected_dir=None):
     morph = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel)
 
     # 3. Find Contours
-    contours, _ = cv2.findContours(
-        morph,
-        cv2.RETR_EXTERNAL,
-        cv2.CHAIN_APPROX_SIMPLE
-    )
+    contours, _ = cv2.findContours(morph, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     # 4. Contour Filtering & Drawing
     for cnt in contours:
@@ -237,13 +229,7 @@ def analyze_scratch_defect(image_path, detected_dir=None):
                 x, y, w, h = cv2.boundingRect(cnt)
 
                 # Draw bounding box
-                cv2.rectangle(
-                    vis_img,
-                    (x, y),
-                    (x + w, y + h),
-                    (0, 0, 255),
-                    2
-                )
+                cv2.rectangle(vis_img, (x, y), (x + w, y + h), (0, 0, 255), 2)
 
     # 5. UI Overlay Text
     if results["scratch_found"]:
@@ -255,7 +241,7 @@ def analyze_scratch_defect(image_path, detected_dir=None):
             1.2,
             (0, 0, 255),
             3,
-            cv2.LINE_AA
+            cv2.LINE_AA,
         )
     else:
         cv2.putText(
@@ -266,7 +252,7 @@ def analyze_scratch_defect(image_path, detected_dir=None):
             1.2,
             (0, 255, 0),
             3,
-            cv2.LINE_AA
+            cv2.LINE_AA,
         )
 
     # 6. Save Outputs (Optional)
@@ -289,8 +275,7 @@ if __name__ == "__main__":
 
     try:
         processed_img, data = analyze_scratch_defect(
-            image_path=test_image,
-            detected_dir=output_dir
+            image_path=test_image, detected_dir=output_dir
         )
 
         print("Results:", data)
