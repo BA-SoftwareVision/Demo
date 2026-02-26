@@ -15,7 +15,7 @@ class BaumerCamera:
             self.camera = neoapi.Cam()
             self.camera.Connect(self.IP_Address)
             self.camera.f.ExposureTime.Set(100000)  # default exposure
-            if self.camera.f.PixelFormat.GetEnumValueList().IsReadable("Mono8"):
+            if self.camera.f.PixelFormat.GetEnumValueList().IsReadable("BGR8"):
                 self.camera.f.PixelFormat.SetString("BGR8")
             print("Camera Connected!")
         except Exception as e:
