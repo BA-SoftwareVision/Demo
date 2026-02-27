@@ -53,7 +53,7 @@ def camera_grabber():
 
     finally:
         print("Camera cleanup")
-        baumer_cam.close()
+        # baumer_cam.close()
 
 
 def generate_frames():
@@ -94,7 +94,7 @@ def capture_image():
     # cap_path = os.path.join(captured_dir, "captured.jpg")
     # cv2.imwrite(cap_path, frame)
     _, buffer = cv2.imencode(".png", frame)
-    img_base64 = base64.b64encode(buffer).decode("utf-8")
+    input_img_base64 = base64.b64encode(buffer).decode("utf-8")
 
     data = request.get_json() or {}
     button = int(data.get("button", 0))
@@ -117,13 +117,13 @@ def capture_image():
 
     det_path = os.path.join(detected_dir, "detected.jpg")
     _, buffer = cv2.imencode(".png", out_img)
-    img_base64 = base64.b64encode(buffer).decode("utf-8")
+    output_img_base64 = base64.b64encode(buffer).decode("utf-8")
     # cv2.imwrite(det_path, out_img)
 
     return jsonify(
         {
-            "captured_image": img_base64,
-            "detected_image": img_base64,
+            "captured_image": input_img_base64,
+            "detected_image": output_img_base64,
             "message": msg,
         }
     )
@@ -173,18 +173,17 @@ def signal_handler(sig, frame):
     # Stop camera thread
     stop_event.set()
 
-    # Give thread time to exit
-    time.sleep(0.5)
-
-    # Close camera safely
+    # Wait for camera thread to exit safely
     try:
-        if baumer_cam is not None and baumer_cam.is_connected():
-            baumer_cam.close()
-            print("[Baumer] Camera closed successfully")
+        if cam_thread.is_alive():
+            cam_thread.join(timeout=2)
+            print("[Baumer] Camera thread stopped")
     except Exception as e:
-        print("[Baumer] Error closing camera:", e)
+        print("[Baumer] Error stopping camera thread:", e)
 
-    # Exit program
+    # Do NOT close camera here (avoid double close)
+    # Camera will be closed in the main finally block
+
     sys.exit(0)
 
 
