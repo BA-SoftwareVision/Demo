@@ -37,7 +37,6 @@ baumer_cam = BaumerCamera()
 def camera_grabber():
     global global_frame
     try:
-        print("[Baumer] Camera connected and grabbing")
 
         while not stop_event.is_set():
             frame = baumer_cam.get_frame()
